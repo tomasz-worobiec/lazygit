@@ -156,6 +156,11 @@ func (self *PatchCommands) MovePatchToSelectedCommit(commits []*models.Commit, s
 
 	baseIndex := sourceCommitIdx + 1
 
+	rebaseBase := "--root"
+	if baseIndex < len(commits) {
+		rebaseBase = commits[baseIndex].Hash
+	}
+
 	changes := []daemon.ChangeTodoAction{
 		{Hash: commits[sourceCommitIdx].Hash, NewAction: todo.Edit},
 		{Hash: commits[destinationCommitIdx].Hash, NewAction: todo.Edit},
@@ -163,7 +168,7 @@ func (self *PatchCommands) MovePatchToSelectedCommit(commits []*models.Commit, s
 	self.os.LogCommand(logTodoChanges(changes), false)
 
 	err := self.rebase.PrepareInteractiveRebaseCommand(PrepareInteractiveRebaseCommandOpts{
-		baseHashOrRoot: commits[baseIndex].Hash,
+		baseHashOrRoot: rebaseBase,
 		overrideEditor: true,
 		instruction:    daemon.NewChangeTodoActionsInstruction(changes),
 	}).Run()
